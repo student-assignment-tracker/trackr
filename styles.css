@@ -94,7 +94,8 @@ main {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -106,7 +107,8 @@ main {
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
@@ -150,6 +152,31 @@ main {
   background: var(--color-primary-hover);
 }
 
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.btn-sm {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.82rem;
+}
+
+.btn-danger-soft {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.btn-danger-soft:hover {
+  background: #fecaca;
+}
+
 .btn-icon {
   background: transparent;
   border: none;
@@ -189,6 +216,13 @@ main {
   gap: 0.4rem;
 }
 
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .filter-btn {
   padding: 0.35rem 0.9rem;
   border: 1px solid var(--color-border);
@@ -213,12 +247,34 @@ main {
   color: var(--color-text-muted);
 }
 
+.sort-select {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: border-color var(--transition);
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
 /* ===== Assignment List ===== */
 #assignment-list {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .assignment-item {
@@ -230,7 +286,12 @@ main {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  transition: opacity var(--transition);
+  transition: opacity var(--transition), box-shadow var(--transition);
+  animation: slideIn 0.18s ease;
+}
+
+.assignment-item:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .assignment-item.overdue {
@@ -286,6 +347,30 @@ main {
   font-weight: 600;
 }
 
+/* ===== Priority Badges ===== */
+.badge-priority {
+  border-radius: 4px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.priority-high {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.priority-medium {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.priority-low {
+  background: #dcfce7;
+  color: #15803d;
+}
+
 .due-date {
   display: inline-flex;
   align-items: center;
@@ -337,4 +422,75 @@ footer {
 @media (max-width: 480px) {
   header h1 { font-size: 1.7rem; }
   .controls { flex-direction: column; align-items: flex-start; }
+}
+
+/* ===== Progress Bar ===== */
+.progress-wrap {
+  background: var(--color-border);
+  border-radius: 99px;
+  height: 7px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), #818cf8);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+/* ===== Dark Mode ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f172a;
+    --color-surface: #1e293b;
+    --color-text: #e2e8f0;
+    --color-text-muted: #94a3b8;
+    --color-border: #334155;
+    --color-overdue: #450a0a;
+    --color-overdue-border: #991b1b;
+    --color-completed-text: #475569;
+  }
+
+  .sort-select {
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+  }
+
+  .form-group select {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+
+  .badge-subject {
+    background: #2e1065;
+    color: #c4b5fd;
+  }
+
+  .priority-high {
+    background: #450a0a;
+    color: #fca5a5;
+  }
+
+  .priority-medium {
+    background: #431407;
+    color: #fcd34d;
+  }
+
+  .priority-low {
+    background: #052e16;
+    color: #86efac;
+  }
+
+  .btn-danger-soft {
+    background: #450a0a;
+    color: #fca5a5;
+    border-color: #991b1b;
+  }
+
+  .btn-danger-soft:hover {
+    background: #7f1d1d;
+  }
 }
