@@ -1,5 +1,4 @@
 # Trackr
-student assignment tracker
 The Student Assignment Development and Tracking software will help instructors create,
 manage, and monitor assignments and student submissions. The will allow instructors to design
 assignments with deadlines requirements and multiple response types(Multiple choice/Short
