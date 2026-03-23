@@ -8,22 +8,29 @@
 
   const STORAGE_KEY = 'trackr_assignments';
 
+  const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+
   /* ===== State ===== */
   let assignments = load();
   let currentFilter = 'all';
 
   /* ===== DOM refs ===== */
-  const form         = document.getElementById('assignment-form');
-  const titleInput   = document.getElementById('title');
-  const subjectInput = document.getElementById('subject');
-  const dueDateInput = document.getElementById('due-date');
-  const notesInput   = document.getElementById('notes');
-  const formError    = document.getElementById('form-error');
-  const list         = document.getElementById('assignment-list');
-  const emptyState   = document.getElementById('empty-state');
-  const statsEl      = document.getElementById('stats');
-  const filterBtns   = document.querySelectorAll('.filter-btn');
-  const yearEl       = document.getElementById('year');
+  const form              = document.getElementById('assignment-form');
+  const titleInput        = document.getElementById('title');
+  const subjectInput      = document.getElementById('subject');
+  const dueDateInput      = document.getElementById('due-date');
+  const notesInput        = document.getElementById('notes');
+  const priorityInput     = document.getElementById('priority');
+  const formError         = document.getElementById('form-error');
+  const list              = document.getElementById('assignment-list');
+  const emptyState        = document.getElementById('empty-state');
+  const statsEl           = document.getElementById('stats');
+  const filterBtns        = document.querySelectorAll('.filter-btn');
+  const yearEl            = document.getElementById('year');
+  const sortSelect        = document.getElementById('sort-select');
+  const clearCompletedBtn = document.getElementById('clear-completed');
+  const progressWrap      = document.getElementById('progress-wrap');
+  const progressBar       = document.getElementById('progress-bar');
 
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -48,6 +55,7 @@
       subject: data.subject.trim(),
       dueDate: data.dueDate,
       notes: data.notes.trim(),
+      priority: data.priority || 'medium',
       completed: false,
       createdAt: new Date().toISOString(),
     };
@@ -67,6 +75,12 @@
 
   function deleteAssignment(id) {
     assignments = assignments.filter((x) => x.id !== id);
+    save();
+    render();
+  }
+
+  function clearCompleted() {
+    assignments = assignments.filter((a) => !a.completed);
     save();
     render();
   }
@@ -102,8 +116,33 @@
     return assignments;
   }
 
+  function sortedAssignments(list) {
+    const sort = sortSelect ? sortSelect.value : 'newest';
+    const arr = [...list];
+    if (sort === 'oldest') return arr.reverse();
+    if (sort === 'due-date') {
+      return arr.sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return a.dueDate.localeCompare(b.dueDate);
+      });
+    }
+    if (sort === 'priority') {
+      return arr.sort((a, b) =>
+        (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1)
+      );
+    }
+    if (sort === 'title') {
+      return arr.sort((a, b) =>
+        a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+      );
+    }
+    return arr; // 'newest' — already newest-first via unshift
+  }
+
   function render() {
-    const visible = filteredAssignments();
+    const visible = sortedAssignments(filteredAssignments());
 
     // Stats
     const total     = assignments.length;
@@ -112,6 +151,23 @@
     statsEl.textContent = total
       ? `${pending} pending · ${completed} completed`
       : '';
+
+    // Progress bar
+    if (progressWrap && progressBar) {
+      if (total > 0) {
+        const pct = Math.round((completed / total) * 100);
+        progressBar.style.width = pct + '%';
+        progressBar.setAttribute('aria-valuenow', pct);
+        progressWrap.style.display = 'block';
+      } else {
+        progressWrap.style.display = 'none';
+      }
+    }
+
+    // Clear-completed button visibility
+    if (clearCompletedBtn) {
+      clearCompletedBtn.style.display = completed > 0 ? 'inline-flex' : 'none';
+    }
 
     // Empty state
     if (visible.length === 0) {
@@ -133,6 +189,9 @@
         const subjectBadge = a.subject
           ? `<span class="badge-subject">${escapeHtml(a.subject)}</span>`
           : '';
+        const priorityBadge = a.priority
+          ? `<span class="badge-priority priority-${escapeHtml(a.priority)}">${escapeHtml(a.priority)}</span>`
+          : '';
         const notesHtml = a.notes
           ? `<p class="assignment-notes">${escapeHtml(a.notes)}</p>`
           : '';
@@ -146,7 +205,7 @@
             />
             <div class="assignment-body">
               <div class="assignment-title">${escapeHtml(a.title)}</div>
-              <div class="assignment-meta">${subjectBadge}${dateLabel}</div>
+              <div class="assignment-meta">${subjectBadge}${priorityBadge}${dateLabel}</div>
               ${notesHtml}
             </div>
             <div class="assignment-actions">
@@ -180,6 +239,7 @@
       subject: subjectInput.value,
       dueDate: dueDateInput.value,
       notes: notesInput.value,
+      priority: priorityInput ? priorityInput.value : 'medium',
     });
     form.reset();
     titleInput.focus();
@@ -215,6 +275,16 @@
       render();
     });
   });
+
+  // Sort
+  if (sortSelect) {
+    sortSelect.addEventListener('change', render);
+  }
+
+  // Clear completed
+  if (clearCompletedBtn) {
+    clearCompletedBtn.addEventListener('click', clearCompleted);
+  }
 
   /* ===== Init ===== */
   render();

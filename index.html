@@ -53,6 +53,14 @@
             maxlength="300"
           ></textarea>
         </div>
+        <div class="form-group">
+          <label for="priority">Priority</label>
+          <select id="priority" name="priority">
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
         <button type="submit" class="btn btn-primary">Add Assignment</button>
         <p class="form-error" id="form-error" role="alert" aria-live="polite"></p>
       </form>
@@ -65,8 +73,22 @@
         <button class="filter-btn" data-filter="pending">Pending</button>
         <button class="filter-btn" data-filter="completed">Completed</button>
       </div>
-      <div class="stats" id="stats" aria-live="polite"></div>
+      <div class="controls-right">
+        <select id="sort-select" class="sort-select" aria-label="Sort assignments">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="due-date">By due date</option>
+          <option value="priority">By priority</option>
+          <option value="title">By title</option>
+        </select>
+        <button id="clear-completed" class="btn btn-sm btn-danger-soft" style="display:none">Clear done</button>
+        <div class="stats" id="stats" aria-live="polite"></div>
+      </div>
     </section>
+    <div class="progress-wrap" id="progress-wrap" style="display:none">
+      <div class="progress-bar" id="progress-bar"
+           role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
 
     <!-- Assignment List -->
     <section id="list-section">
