@@ -31,6 +31,7 @@
   const clearCompletedBtn = document.getElementById('clear-completed');
   const progressWrap      = document.getElementById('progress-wrap');
   const progressBar       = document.getElementById('progress-bar');
+  const progressPct       = document.getElementById('progress-pct');
 
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -159,6 +160,7 @@
         progressBar.style.width = pct + '%';
         progressBar.setAttribute('aria-valuenow', pct);
         progressWrap.style.display = 'block';
+        if (progressPct) progressPct.textContent = pct + '%';
       } else {
         progressWrap.style.display = 'none';
       }
@@ -180,7 +182,7 @@
     list.innerHTML = visible
       .map((a) => {
         const overdue = isOverdue(a);
-        const classes = ['assignment-item', a.completed ? 'completed' : '', overdue ? 'overdue' : '']
+        const classes = ['assignment-item', a.completed ? 'completed' : '', overdue ? 'overdue' : '', `priority-accent-${escapeHtml(a.priority || 'medium')}`]
           .filter(Boolean)
           .join(' ');
         const dateLabel = a.dueDate
