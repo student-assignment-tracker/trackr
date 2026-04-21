@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.qnivudxhebzkuwqooczv;
+const supabaseUrl = import.meta.env.qnivudxhebzkuwqooczv.supabase.co;
 const supabaseAnonKey = import.meta.env.sb_publishable_uzt4rPopPuM0cyxonbh_LA_JxxoofQF;
 
 if (!supabaseUrl || !supabaseAnonKey) {
