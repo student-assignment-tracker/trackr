@@ -78,8 +78,11 @@ import { supabase } from "./supabaseClient";
 //     { id, startedAt, durationSec, mode: "focus"|"shortBreak"|"longBreak" }
 // ============================================================================
 
-function assertNoError(error) {
-  if (error) throw error;
+function assertNoError(error, operation) {
+  if (!error) return;
+  const wrappedError = new Error(`${operation} failed: ${error.message}`);
+  wrappedError.cause = error;
+  throw wrappedError;
 }
 
 function mapAssignmentFromDb(row) {
@@ -212,7 +215,7 @@ function mapSemesterToDb(payload) {
 // Supabase: const { data } = await supabase.from('assignments').select('*').order('dueDate');
 export async function getAssignments() {
   const { data, error } = await supabase.from("assignments").select("*").order("due_date");
-  assertNoError(error);
+  assertNoError(error, "getAssignments");
   return data.map(mapAssignmentFromDb);
 }
 
@@ -223,7 +226,7 @@ export async function createAssignment(payload) {
     .insert(mapAssignmentToDb(payload))
     .select()
     .single();
-  assertNoError(error);
+  assertNoError(error, "createAssignment");
   return mapAssignmentFromDb(data);
 }
 
@@ -235,14 +238,14 @@ export async function updateAssignment(id, patch) {
     .eq("id", id)
     .select()
     .maybeSingle();
-  assertNoError(error);
+  assertNoError(error, "updateAssignment");
   return data ? mapAssignmentFromDb(data) : null;
 }
 
 // Supabase: await supabase.from('assignments').delete().eq('id', id);
 export async function deleteAssignment(id) {
   const { error } = await supabase.from("assignments").delete().eq("id", id);
-  assertNoError(error);
+  assertNoError(error, "deleteAssignment");
 }
 
 
@@ -251,21 +254,21 @@ export async function deleteAssignment(id) {
 // Supabase: const { data } = await supabase.from('notes').select('*');
 export async function getNotes() {
   const { data, error } = await supabase.from("notes").select("*");
-  assertNoError(error);
+  assertNoError(error, "getNotes");
   return data.map(mapNoteFromDb);
 }
 
 // Supabase: const { data } = await supabase.from('notes').insert(payload).select().single();
 export async function createNote(payload) {
   const { data, error } = await supabase.from("notes").insert(mapNoteToDb(payload)).select().single();
-  assertNoError(error);
+  assertNoError(error, "createNote");
   return mapNoteFromDb(data);
 }
 
 // Supabase: await supabase.from('notes').delete().eq('id', id);
 export async function deleteNote(id) {
   const { error } = await supabase.from("notes").delete().eq("id", id);
-  assertNoError(error);
+  assertNoError(error, "deleteNote");
 }
 
 
@@ -279,7 +282,7 @@ export async function updateNote(id, patch) {
     .eq("id", id)
     .select()
     .maybeSingle();
-  assertNoError(error);
+  assertNoError(error, "updateNote");
   return data ? mapNoteFromDb(data) : null;
 }
 
@@ -292,7 +295,7 @@ export async function updateNote(id, patch) {
 // Supabase: const { data } = await supabase.from('reminders').select('*');
 export async function getReminders() {
   const { data, error } = await supabase.from("reminders").select("*");
-  assertNoError(error);
+  assertNoError(error, "getReminders");
   return data.map(mapReminderFromDb);
 }
 
@@ -303,7 +306,7 @@ export async function createReminder(payload) {
     .insert(mapReminderToDb(payload))
     .select()
     .single();
-  assertNoError(error);
+  assertNoError(error, "createReminder");
   return mapReminderFromDb(data);
 }
 
@@ -315,14 +318,14 @@ export async function updateReminder(id, patch) {
     .eq("id", id)
     .select()
     .maybeSingle();
-  assertNoError(error);
+  assertNoError(error, "updateReminder");
   return data ? mapReminderFromDb(data) : null;
 }
 
 // Supabase: await supabase.from('reminders').delete().eq('id', id);
 export async function deleteReminder(id) {
   const { error } = await supabase.from("reminders").delete().eq("id", id);
-  assertNoError(error);
+  assertNoError(error, "deleteReminder");
 }
 
 
@@ -331,14 +334,14 @@ export async function deleteReminder(id) {
 // Supabase: const { data } = await supabase.from('classes').select('*, semesters(*)');
 export async function getClasses() {
   const { data, error } = await supabase.from("classes").select("*");
-  assertNoError(error);
+  assertNoError(error, "getClasses");
   return data.map(mapClassFromDb);
 }
 
 // Supabase: const { data } = await supabase.from('classes').insert(payload).select().single();
 export async function createClass(payload) {
   const { data, error } = await supabase.from("classes").insert(mapClassToDb(payload)).select().single();
-  assertNoError(error);
+  assertNoError(error, "createClass");
   return mapClassFromDb(data);
 }
 
@@ -350,14 +353,14 @@ export async function updateClass(id, patch) {
     .eq("id", id)
     .select()
     .maybeSingle();
-  assertNoError(error);
+  assertNoError(error, "updateClass");
   return data ? mapClassFromDb(data) : null;
 }
 
 // Supabase: await supabase.from('classes').delete().eq('id', id);
 export async function deleteClass(id) {
   const { error } = await supabase.from("classes").delete().eq("id", id);
-  assertNoError(error);
+  assertNoError(error, "deleteClass");
 }
 
 
@@ -366,7 +369,7 @@ export async function deleteClass(id) {
 // Supabase: const { data } = await supabase.from('semesters').select('*');
 export async function getSemesters() {
   const { data, error } = await supabase.from("semesters").select("*");
-  assertNoError(error);
+  assertNoError(error, "getSemesters");
   return data.map(mapSemesterFromDb);
 }
 
@@ -377,7 +380,7 @@ export async function createSemester(payload) {
     .insert(mapSemesterToDb(payload))
     .select()
     .single();
-  assertNoError(error);
+  assertNoError(error, "createSemester");
   return mapSemesterFromDb(data);
 }
 
@@ -389,12 +392,12 @@ export async function updateSemester(id, patch) {
     .eq("id", id)
     .select()
     .maybeSingle();
-  assertNoError(error);
+  assertNoError(error, "updateSemester");
   return data ? mapSemesterFromDb(data) : null;
 }
 
 // Supabase: await supabase.from('semesters').delete().eq('id', id);
 export async function deleteSemester(id) {
   const { error } = await supabase.from("semesters").delete().eq("id", id);
-  assertNoError(error);
+  assertNoError(error, "deleteSemester");
 }
