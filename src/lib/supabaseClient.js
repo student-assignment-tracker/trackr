@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.qnivudxhebzkuwqooczv.supabase.co;
-const supabaseAnonKey = import.meta.env.sb_publishable_uzt4rPopPuM0cyxonbh_LA_JxxoofQF;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
@@ -9,7 +9,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey,
-);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
