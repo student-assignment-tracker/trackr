@@ -1,3 +1,5 @@
+import { supabase } from "./supabaseClient";
+
 // ============================================================================
 // API LAYER  —  THIS IS THE ONLY FILE YOU NEED TO EDIT WHEN WIRING SUPABASE.
 // ============================================================================
@@ -76,52 +78,174 @@
 //     { id, startedAt, durationSec, mode: "focus"|"shortBreak"|"longBreak" }
 // ============================================================================
 
-// ---------- TEMPORARY in-memory store. DELETE when wiring Supabase. ----------
-const store = {
-  assignments: [],
-  notes: [],
-  reminders: [],
-  classes: [],
-  semesters: [],
-};
+function assertNoError(error, operation) {
+  if (!error) return;
+  const wrappedError = new Error(`${operation} failed: ${error.message}`);
+  wrappedError.cause = error;
+  throw wrappedError;
+}
 
-// Tiny id generator. DELETE when Supabase takes over (Postgres generates ids).
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+function mapAssignmentFromDb(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    classId: row.class_id,
+    categoryId: row.category_id,
+    dueDate: row.due_date,
+    dueTime: row.due_time,
+    done: row.done,
+    score: row.score,
+    description: row.description,
+    createdAt: row.created_at,
+  };
+}
 
-// A trivial delay so UI code is already written against async. Keep or remove.
-const tick = () => new Promise((r) => setTimeout(r, 0));
-// ----------------------------------------------------------------------------
+function mapAssignmentToDb(payload) {
+  return {
+    title: payload.title,
+    class_id: payload.classId,
+    category_id: payload.categoryId,
+    due_date: payload.dueDate,
+    due_time: payload.dueTime,
+    done: payload.done,
+    score: payload.score,
+    description: payload.description,
+  };
+}
+
+function mapNoteFromDb(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    date: row.date,
+    body: row.body,
+    color: row.color,
+    classId: row.class_id,
+    createdAt: row.created_at,
+  };
+}
+
+function mapNoteToDb(payload) {
+  return {
+    title: payload.title,
+    date: payload.date,
+    body: payload.body,
+    color: payload.color,
+    class_id: payload.classId,
+  };
+}
+
+function mapReminderFromDb(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    date: row.date,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    body: row.body,
+    color: row.color,
+    classId: row.class_id,
+    createdAt: row.created_at,
+  };
+}
+
+function mapReminderToDb(payload) {
+  return {
+    title: payload.title,
+    date: payload.date,
+    start_time: payload.startTime,
+    end_time: payload.endTime,
+    body: payload.body,
+    color: payload.color,
+    class_id: payload.classId,
+  };
+}
+
+function mapClassFromDb(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    code: row.code,
+    semesterId: row.semester_id,
+    color: row.color,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    meetingDays: row.meeting_days,
+    meetingStartTime: row.meeting_start_time,
+    meetingEndTime: row.meeting_end_time,
+    categories: row.categories,
+  };
+}
+
+function mapClassToDb(payload) {
+  return {
+    name: payload.name,
+    code: payload.code,
+    semester_id: payload.semesterId,
+    color: payload.color,
+    start_date: payload.startDate,
+    end_date: payload.endDate,
+    meeting_days: payload.meetingDays,
+    meeting_start_time: payload.meetingStartTime,
+    meeting_end_time: payload.meetingEndTime,
+    categories: payload.categories,
+  };
+}
+
+function mapSemesterFromDb(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    startDate: row.start_date,
+    endDate: row.end_date,
+  };
+}
+
+function mapSemesterToDb(payload) {
+  return {
+    name: payload.name,
+    start_date: payload.startDate,
+    end_date: payload.endDate,
+  };
+}
 
 
 // ========== ASSIGNMENTS =====================================================
 
 // Supabase: const { data } = await supabase.from('assignments').select('*').order('dueDate');
 export async function getAssignments() {
-  await tick();
-  return [...store.assignments];
+  const { data, error } = await supabase.from("assignments").select("*").order("due_date");
+  assertNoError(error, "getAssignments");
+  return data.map(mapAssignmentFromDb);
 }
 
 // Supabase: const { data } = await supabase.from('assignments').insert(payload).select().single();
 export async function createAssignment(payload) {
-  await tick();
-  const row = { id: uid(), done: false, createdAt: new Date().toISOString(), ...payload };
-  store.assignments.push(row);
-  return row;
+  const { data, error } = await supabase
+    .from("assignments")
+    .insert(mapAssignmentToDb(payload))
+    .select()
+    .single();
+  assertNoError(error, "createAssignment");
+  return mapAssignmentFromDb(data);
 }
 
 // Supabase: await supabase.from('assignments').update(patch).eq('id', id);
 export async function updateAssignment(id, patch) {
-  await tick();
-  const idx = store.assignments.findIndex((a) => a.id === id);
-  if (idx === -1) return null;
-  store.assignments[idx] = { ...store.assignments[idx], ...patch };
-  return store.assignments[idx];
+  const { data, error } = await supabase
+    .from("assignments")
+    .update(mapAssignmentToDb(patch))
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+  assertNoError(error, "updateAssignment");
+  return data ? mapAssignmentFromDb(data) : null;
 }
 
 // Supabase: await supabase.from('assignments').delete().eq('id', id);
 export async function deleteAssignment(id) {
-  await tick();
-  store.assignments = store.assignments.filter((a) => a.id !== id);
+  const { error } = await supabase.from("assignments").delete().eq("id", id);
+  assertNoError(error, "deleteAssignment");
 }
 
 
@@ -129,22 +253,22 @@ export async function deleteAssignment(id) {
 
 // Supabase: const { data } = await supabase.from('notes').select('*');
 export async function getNotes() {
-  await tick();
-  return [...store.notes];
+  const { data, error } = await supabase.from("notes").select("*");
+  assertNoError(error, "getNotes");
+  return data.map(mapNoteFromDb);
 }
 
 // Supabase: const { data } = await supabase.from('notes').insert(payload).select().single();
 export async function createNote(payload) {
-  await tick();
-  const row = { id: uid(), createdAt: new Date().toISOString(), ...payload };
-  store.notes.push(row);
-  return row;
+  const { data, error } = await supabase.from("notes").insert(mapNoteToDb(payload)).select().single();
+  assertNoError(error, "createNote");
+  return mapNoteFromDb(data);
 }
 
 // Supabase: await supabase.from('notes').delete().eq('id', id);
 export async function deleteNote(id) {
-  await tick();
-  store.notes = store.notes.filter((n) => n.id !== id);
+  const { error } = await supabase.from("notes").delete().eq("id", id);
+  assertNoError(error, "deleteNote");
 }
 
 
@@ -152,11 +276,14 @@ export async function deleteNote(id) {
 
 // Supabase: await supabase.from('notes').update(patch).eq('id', id).select().single();
 export async function updateNote(id, patch) {
-  await tick();
-  const idx = store.notes.findIndex((n) => n.id === id);
-  if (idx === -1) return null;
-  store.notes[idx] = { ...store.notes[idx], ...patch };
-  return store.notes[idx];
+  const { data, error } = await supabase
+    .from("notes")
+    .update(mapNoteToDb(patch))
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+  assertNoError(error, "updateNote");
+  return data ? mapNoteFromDb(data) : null;
 }
 
 
@@ -167,31 +294,38 @@ export async function updateNote(id, patch) {
 
 // Supabase: const { data } = await supabase.from('reminders').select('*');
 export async function getReminders() {
-  await tick();
-  return [...store.reminders];
+  const { data, error } = await supabase.from("reminders").select("*");
+  assertNoError(error, "getReminders");
+  return data.map(mapReminderFromDb);
 }
 
 // Supabase: const { data } = await supabase.from('reminders').insert(payload).select().single();
 export async function createReminder(payload) {
-  await tick();
-  const row = { id: uid(), createdAt: new Date().toISOString(), ...payload };
-  store.reminders.push(row);
-  return row;
+  const { data, error } = await supabase
+    .from("reminders")
+    .insert(mapReminderToDb(payload))
+    .select()
+    .single();
+  assertNoError(error, "createReminder");
+  return mapReminderFromDb(data);
 }
 
 // Supabase: await supabase.from('reminders').update(patch).eq('id', id).select().single();
 export async function updateReminder(id, patch) {
-  await tick();
-  const idx = store.reminders.findIndex((r) => r.id === id);
-  if (idx === -1) return null;
-  store.reminders[idx] = { ...store.reminders[idx], ...patch };
-  return store.reminders[idx];
+  const { data, error } = await supabase
+    .from("reminders")
+    .update(mapReminderToDb(patch))
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+  assertNoError(error, "updateReminder");
+  return data ? mapReminderFromDb(data) : null;
 }
 
 // Supabase: await supabase.from('reminders').delete().eq('id', id);
 export async function deleteReminder(id) {
-  await tick();
-  store.reminders = store.reminders.filter((r) => r.id !== id);
+  const { error } = await supabase.from("reminders").delete().eq("id", id);
+  assertNoError(error, "deleteReminder");
 }
 
 
@@ -199,41 +333,34 @@ export async function deleteReminder(id) {
 
 // Supabase: const { data } = await supabase.from('classes').select('*, semesters(*)');
 export async function getClasses() {
-  await tick();
-  return [...store.classes];
+  const { data, error } = await supabase.from("classes").select("*");
+  assertNoError(error, "getClasses");
+  return data.map(mapClassFromDb);
 }
 
 // Supabase: const { data } = await supabase.from('classes').insert(payload).select().single();
 export async function createClass(payload) {
-  await tick();
-  const row = { id: uid(), ...payload };
-  store.classes.push(row);
-  return row;
+  const { data, error } = await supabase.from("classes").insert(mapClassToDb(payload)).select().single();
+  assertNoError(error, "createClass");
+  return mapClassFromDb(data);
 }
 
 // Supabase: await supabase.from('classes').update(patch).eq('id', id).select().single();
 export async function updateClass(id, patch) {
-  await tick();
-  const idx = store.classes.findIndex((c) => c.id === id);
-  if (idx === -1) return null;
-  store.classes[idx] = { ...store.classes[idx], ...patch };
-  return store.classes[idx];
+  const { data, error } = await supabase
+    .from("classes")
+    .update(mapClassToDb(patch))
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+  assertNoError(error, "updateClass");
+  return data ? mapClassFromDb(data) : null;
 }
 
 // Supabase: await supabase.from('classes').delete().eq('id', id);
 export async function deleteClass(id) {
-  await tick();
-  store.classes = store.classes.filter((c) => c.id !== id);
-  // Remove assignments belonging to this class. In Supabase, prefer ON DELETE CASCADE.
-  store.assignments = store.assignments.filter((a) => a.classId !== id);
-  // Detach notes and reminders from this class (keep them, just remove the link).
-  // In Supabase, prefer ON DELETE SET NULL for notes.classId and reminders.classId.
-  store.notes = store.notes.map((n) =>
-    n.classId === id ? { ...n, classId: null } : n,
-  );
-  store.reminders = store.reminders.map((r) =>
-    r.classId === id ? { ...r, classId: null } : r,
-  );
+  const { error } = await supabase.from("classes").delete().eq("id", id);
+  assertNoError(error, "deleteClass");
 }
 
 
@@ -241,35 +368,36 @@ export async function deleteClass(id) {
 
 // Supabase: const { data } = await supabase.from('semesters').select('*');
 export async function getSemesters() {
-  await tick();
-  return [...store.semesters];
+  const { data, error } = await supabase.from("semesters").select("*");
+  assertNoError(error, "getSemesters");
+  return data.map(mapSemesterFromDb);
 }
 
 // Supabase: const { data } = await supabase.from('semesters').insert(payload).select().single();
 export async function createSemester(payload) {
-  await tick();
-  const row = { id: uid(), ...payload };
-  store.semesters.push(row);
-  return row;
+  const { data, error } = await supabase
+    .from("semesters")
+    .insert(mapSemesterToDb(payload))
+    .select()
+    .single();
+  assertNoError(error, "createSemester");
+  return mapSemesterFromDb(data);
 }
 
 // Supabase: await supabase.from('semesters').update(patch).eq('id', id).select().single();
 export async function updateSemester(id, patch) {
-  await tick();
-  const idx = store.semesters.findIndex((s) => s.id === id);
-  if (idx === -1) return null;
-  store.semesters[idx] = { ...store.semesters[idx], ...patch };
-  return store.semesters[idx];
+  const { data, error } = await supabase
+    .from("semesters")
+    .update(mapSemesterToDb(patch))
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+  assertNoError(error, "updateSemester");
+  return data ? mapSemesterFromDb(data) : null;
 }
 
 // Supabase: await supabase.from('semesters').delete().eq('id', id);
 export async function deleteSemester(id) {
-  await tick();
-  store.semesters = store.semesters.filter((s) => s.id !== id);
-  // Detach classes from the deleted semester rather than cascading —
-  // students may want to keep old class data even after a semester ends.
-  // Prefer ON DELETE SET NULL in Supabase.
-  store.classes = store.classes.map((c) =>
-    c.semesterId === id ? { ...c, semesterId: null } : c,
-  );
+  const { error } = await supabase.from("semesters").delete().eq("id", id);
+  assertNoError(error, "deleteSemester");
 }
