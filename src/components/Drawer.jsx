@@ -1,4 +1,4 @@
-import { X, Calendar, Timer, BookOpen, History, CalendarRange } from "lucide-react";
+import { X, Calendar, Timer, BookOpen, History, CalendarRange, LogOut } from "lucide-react";
 import { theme } from "../theme";
 
 const ITEMS = [
@@ -9,7 +9,7 @@ const ITEMS = [
   { key: "history", label: "History", Icon: History },
 ];
 
-export default function Drawer({ open, currentView, onSelect, onClose }) {
+export default function Drawer({ open, currentView, onSelect, onClose, userEmail, onSignOut }) {
   if (!open) return null;
 
   return (
@@ -84,8 +84,31 @@ export default function Drawer({ open, currentView, onSelect, onClose }) {
           );
         })}
 
-        <div style={{ marginTop: "auto", padding: 12, fontSize: 12, color: theme.inkSoft }}>
-          Signed in as student
+        <div style={{ marginTop: "auto", padding: 12 }}>
+          <div style={{ fontSize: 12, color: theme.inkSoft, marginBottom: 10, wordBreak: "break-all" }}>
+            {userEmail || "Signed in"}
+          </div>
+          <button
+            onClick={onSignOut}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 14px",
+              borderRadius: theme.radiusSm,
+              background: "transparent",
+              color: theme.danger,
+              fontWeight: 500,
+              fontSize: 14,
+              width: "100%",
+              textAlign: "left",
+              border: `1px solid ${theme.border}`,
+              cursor: "pointer",
+            }}
+          >
+            <LogOut size={16} />
+            Sign Out
+          </button>
         </div>
       </nav>
     </>
