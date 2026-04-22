@@ -115,7 +115,7 @@ Lectures are not stored — computed from `Class` on the fly.
 ## Known limitations
 
 - **No auth yet.** The app assumes a logged-in user. Add auth before deploying publicly.
-- **No persistence.** All state is in-memory. Refresh wipes the app.
+- **Supabase must be configured.** The app now expects `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`; without them it will fail at startup.
 - **No notifications.** Reminders are visual only — they don't ping anyone.
 - **Timezone: local only.** All dates are stored and compared as "YYYY-MM-DD" in the user's local timezone.
 - **Lectures are all-or-nothing per class.** Individual cancellations would require adding a `canceledLectures` array to the class.
