@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { theme } from "../theme";
 import * as api from "../lib/api";
+import SignUp from "./SignUp";
 
 export default function LoginPage() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
-  const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  if (showSignUp) {
+    return <SignUp onBackClick={() => setShowSignUp(false)} />;
+  }
 
   async function handleSignIn(e) {
     e.preventDefault();
     setError(null);
-    setInfo(null);
     setLoading(true);
     try {
       await api.signIn(email, password);
@@ -25,30 +28,6 @@ export default function LoginPage() {
     }
   }
 
-  async function handleSignUp(e) {
-    e.preventDefault();
-    setError(null);
-    setInfo(null);
-    setLoading(true);
-    try {
-      await api.signUp(email, password);
-      setInfo("Check your email to confirm your account, then sign in.");
-      setEmail("");
-      setPassword("");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function switchMode() {
-    setIsSignUp(!isSignUp);
-    setEmail("");
-    setPassword("");
-    setError(null);
-    setInfo(null);
-  }
 
   return (
     <div
@@ -84,7 +63,7 @@ export default function LoginPage() {
           Trackr
         </h1>
         <p style={{ margin: "0 0 28px", color: theme.inkSoft, fontSize: 14 }}>
-          {isSignUp ? "Create an account to get started." : "Sign in to your account to continue."}
+          Sign in to your account to continue.
         </p>
 
         <form onSubmit={handleSignIn} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -131,9 +110,6 @@ export default function LoginPage() {
           {error && (
             <p style={{ margin: 0, color: theme.danger, fontSize: 13 }}>{error}</p>
           )}
-          {info && (
-            <p style={{ margin: 0, color: theme.accent, fontSize: 13 }}>{info}</p>
-          )}
 
           <button
             type="submit"
@@ -157,7 +133,7 @@ export default function LoginPage() {
           <button
             type="button"
             disabled={loading}
-            onClick={() => setIsSignUp(true)}
+            onClick={() => setShowSignUp(true)}
             style={{
               padding: "11px 0",
               borderRadius: theme.radiusSm,
