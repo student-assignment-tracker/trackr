@@ -70,12 +70,6 @@ import { supabase } from "./supabaseClient";
 //   Semester:
 //     { id, name, startDate: "YYYY-MM-DD", endDate: "YYYY-MM-DD" }
 //
-//   Lecture:
-//     NOT STORED. Lectures are computed on the fly from a Class's meeting
-//     pattern (see lib/lectures.js). No backend table needed.
-//
-//   PomodoroSession (optional, only if you track study history):
-//     { id, startedAt, durationSec, mode: "focus"|"shortBreak"|"longBreak" }
 // ============================================================================
 
 function assertNoError(error, operation) {
