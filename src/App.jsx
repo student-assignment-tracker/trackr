@@ -4,6 +4,7 @@ import { Menu, Plus } from "lucide-react";
 import { theme } from "./theme";
 import { ymd } from "./lib/dateUtils";
 import * as api from "./lib/api";
+import { supabase } from "./lib/supabaseClient";
 
 import Drawer from "./components/Drawer";
 import Calendar from "./components/Calendar";
@@ -13,6 +14,7 @@ import Semesters from "./components/Semesters";
 import History from "./components/History";
 import ItemModal from "./components/ItemModal";
 import AddChooser from "./components/AddChooser";
+import LoginPage from "./components/LoginPage";
 
 const VIEW_TITLES = {
   calendar: "Calendar",
@@ -23,6 +25,27 @@ const VIEW_TITLES = {
 };
 
 export default function App() {
+  // Auth state
+  const [session, setSession] = useState(undefined); // undefined = loading
+
+  useEffect(() => {
+    api.getSession().then(setSession).catch(() => setSession(null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Show nothing while we resolve the initial session.
+  if (session === undefined) return null;
+
+  // Show login screen when not authenticated.
+  if (session === null) return <LoginPage />;
+
+  return <AuthenticatedApp session={session} />;
+}
+
+function AuthenticatedApp({ session }) {
   // UI state
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentView, setCurrentView] = useState("calendar");
@@ -291,6 +314,11 @@ export default function App() {
         currentView={currentView}
         onSelect={setCurrentView}
         onClose={() => setMenuOpen(false)}
+        userEmail={session?.user?.email}
+        onSignOut={async () => {
+          setMenuOpen(false);
+          try { await api.signOut(); } catch { /* session will be cleared by onAuthStateChange */ }
+        }}
       />
 
       <AddChooser
