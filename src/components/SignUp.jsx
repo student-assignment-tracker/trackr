@@ -2,28 +2,12 @@ import { useState } from "react";
 import { theme } from "../theme";
 import * as api from "../lib/api";
 
-export default function LoginPage() {
-  const [isSignUp, setIsSignUp] = useState(false);
+export default function SignUp({ onBackClick }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  async function handleSignIn(e) {
-    e.preventDefault();
-    setError(null);
-    setInfo(null);
-    setLoading(true);
-    try {
-      await api.signIn(email, password);
-      // onAuthStateChange in App.jsx will update the session automatically.
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleSignUp(e) {
     e.preventDefault();
@@ -40,14 +24,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  }
-
-  function switchMode() {
-    setIsSignUp(!isSignUp);
-    setEmail("");
-    setPassword("");
-    setError(null);
-    setInfo(null);
   }
 
   return (
@@ -84,10 +60,10 @@ export default function LoginPage() {
           Trackr
         </h1>
         <p style={{ margin: "0 0 28px", color: theme.inkSoft, fontSize: 14 }}>
-          {isSignUp ? "Create an account to get started." : "Sign in to your account to continue."}
+          Create an account to get started.
         </p>
 
-        <form onSubmit={handleSignIn} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <form onSubmit={handleSignUp} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <label style={{ fontSize: 13, fontWeight: 500, color: theme.inkSoft }}>Email</label>
             <input
@@ -115,7 +91,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete="current-password"
+              autoComplete="new-password"
               placeholder="••••••••"
               style={{
                 padding: "10px 14px",
@@ -151,13 +127,13 @@ export default function LoginPage() {
               border: "none",
             }}
           >
-            {loading ? "Please wait…" : "Sign In"}
+            {loading ? "Please wait…" : "Create Account"}
           </button>
 
           <button
             type="button"
             disabled={loading}
-            onClick={() => setIsSignUp(true)}
+            onClick={onBackClick}
             style={{
               padding: "11px 0",
               borderRadius: theme.radiusSm,
@@ -169,10 +145,11 @@ export default function LoginPage() {
               border: `1px solid ${theme.accentSoft}`,
             }}
           >
-            Create Account
+            Back to Sign In
           </button>
         </form>
       </div>
     </div>
   );
 }
+
