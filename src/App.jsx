@@ -29,7 +29,7 @@ export default function App() {
   const [session, setSession] = useState(undefined); // undefined = loading
 
   useEffect(() => {
-    api.getSession().then(setSession);
+    api.getSession().then(setSession).catch(() => setSession(null));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
     });
@@ -315,7 +315,10 @@ function AuthenticatedApp({ session }) {
         onSelect={setCurrentView}
         onClose={() => setMenuOpen(false)}
         userEmail={session?.user?.email}
-        onSignOut={async () => { setMenuOpen(false); await api.signOut(); }}
+        onSignOut={async () => {
+          setMenuOpen(false);
+          try { await api.signOut(); } catch { /* session will be cleared by onAuthStateChange */ }
+        }}
       />
 
       <AddChooser
